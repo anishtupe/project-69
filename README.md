@@ -1,168 +1,284 @@
 # InfludeAI
 
-InfludeAI is an Expo mobile app project for a two-sided creator and brand campaign marketplace. The intended roles are:
+InfludeAI is a two-sided mobile marketplace for creators and brands. In the repo as it exists today, the implemented code is mostly a design system, auth state, Supabase client setup, and data hooks for creators, campaigns, applications, and messages. The app flow is not fully wired up yet, so the README below describes both the intended product and the actual working state of the codebase.
 
-- **Creator:** create a creator profile, show social-platform statistics, find campaigns, apply, and message brands.
-- **Brand:** create a brand profile, find and save creators, publish campaigns, review applications, and message creators.
+## What is in the repo right now
 
-The repository currently contains TypeScript types, Supabase data hooks for these records, shared UI components, and auth state code. **It does not currently contain the app screens or navigation for these flows.** The root `App.tsx` still displays the Expo starter screen, so the role capabilities above describe the intended product and supporting code, not a usable end-to-end app.
+- Creator side: shared creator profile UI, creator cards, platform stats, and hooks for creator data.
+- Brand side: brand/campaign data models and hooks for campaigns, applications, and saved creators.
+- Shared app pieces: auth state, shared buttons/inputs/cards, and design tokens.
+- Backend: Supabase client setup and React Query hooks.
+
+The repo does not currently include a complete runnable app flow, route screens, or SQL migration files.
 
 ## Tech stack
 
-These packages and versions/ranges are from `package.json`:
+From `package.json`:
 
-- Expo `~57.0.11`, Expo Router `~57.0.11`, React Native `0.86.2`, React `19.2.3`, TypeScript `~6.0.3`
-- NativeWind `^4.2.6`, Tailwind CSS `^3.4.19`
-- Supabase JS `^2.112.2`, React Native Async Storage `2.2.0`, React Native URL polyfill `^4.0.0`
-- TanStack React Query `^5.101.4`, Zustand `^5.0.14`
-- React Hook Form `^7.84.0`, `@hookform/resolvers` `^5.7.1`, Zod `^4.4.3`
-- Expo Google Fonts: DM Sans `^0.4.2` and Syne `^0.4.2`
-- Expo Font `^57.0.1`, Expo Image `^57.0.2`, Expo Image Picker `^57.0.8`, Expo Secure Store `~57.0.1`, Expo Status Bar `~57.0.1`
-- React Native Gesture Handler `^3.1.0`, Reanimated `^4.5.3`, Safe Area Context `~5.7.0`, Screens `~4.26.0`, SVG `^15.15.5`
-- React Native Paper `^5.15.3`, Victory Native `^41.26.0`
-- Development dependencies: `@types/react` `~19.2.2` and TypeScript `~6.0.3`
-
-Supabase is the configured backend client. There is no Razorpay package or integration in the current dependencies.
+- Expo `~57.0.11`
+- Expo Router `~57.0.11`
+- React Native `0.86.2`
+- React `19.2.3`
+- TypeScript `~6.0.3`
+- NativeWind `^4.2.6`
+- Tailwind CSS `^3.4.19`
+- @supabase/supabase-js `^2.112.2`
+- @tanstack/react-query `^5.101.4`
+- zustand `^5.0.14`
+- react-hook-form `^7.84.0`
+- zod `^4.4.3`
+- @react-native-async-storage/async-storage `2.2.0`
+- expo-image-picker `^57.0.8`
+- expo-secure-store `~57.0.1`
+- expo-font `^57.0.1`
+- expo-image `^57.0.2`
+- react-native-paper `^5.15.3`
+- react-native-reanimated `^4.5.3`
+- react-native-safe-area-context `~5.7.0`
+- react-native-screens `~4.26.0`
+- react-native-svg `^15.15.5`
+- react-native-url-polyfill `^4.0.0`
+- victory-native `^41.26.0`
+- @expo-google-fonts/dm-sans `^0.4.2`
+- @expo-google-fonts/syne `^0.4.2`
 
 ## Prerequisites
 
-- **Node.js:** React Native `0.86.2` declares support for Node `^20.19.4`, `^22.13.0`, `^24.3.0`, or `>=25.0.0`. Use a supported LTS release such as Node `22.13.0+` or `24.3.0+`.
-- **npm:** npm is recommended; the repository includes `package-lock.json`. Yarn can also install packages, but there is no Yarn lockfile.
-- **Expo CLI:** no global install is needed; use the project CLI through `npx expo`.
-- **To run the app:** install Expo Go on a compatible physical iOS or Android phone, or install Android Studio (Android emulator) / Xcode (iOS Simulator; macOS only).
-- **Backend configuration:** a Supabase account and a Supabase project.
+- Node.js: use a supported React Native version. The installed React Native package declares support for Node `^20.19.4`, `^22.13.0`, `^24.3.0`, or `>=25.0.0`.
+- npm or yarn: this repo includes `package-lock.json`, so `npm` is the default choice.
+- Expo CLI or `npx expo`: no global install is required.
+- Expo Go on a phone, or Android Studio/Xcode simulators for local testing.
+- A Supabase project and account.
 
 ## Setup
 
-1. **Clone the repository.** Replace `<repository-url>` with the Git URL for this project.
+1. Clone the repo
 
-   ```sh
-   git clone <repository-url>
-   cd influde-ai
-   ```
+```bash
+git clone <repo-url>
+cd influde-ai
+```
 
-2. **Install dependencies.** Use npm to respect the committed lockfile.
+2. Install dependencies
 
-   ```sh
-   npm ci
-   ```
+```bash
+npm install
+```
 
-3. **Create a Supabase project.** In the Supabase dashboard, create a project and wait for it to finish provisioning.
+If you want to respect the lockfile exactly:
 
-4. **Set up the database schema.** There is currently **no SQL schema or Supabase migrations in this repository**. The app's data hooks reference tables including `profiles`, `creators`, `brands`, `campaigns`, `campaign_deliverables`, `applications`, `saved_creators`, `conversations`, and `messages`; no script to create these tables, relationships, policies, or Realtime configuration is included.
+```bash
+npm ci
+```
 
-   **TODO:** add and maintain the database setup under `supabase/schema.sql` (or as Supabase migrations under `supabase/migrations/`). Until that schema and its access policies exist, the app's Supabase data operations cannot be set up from this repository alone. When a schema is supplied, run it in the Supabase dashboard's **SQL Editor** against the new project, or use the Supabase CLI if the project is configured for it. Do not disable Row Level Security to work around missing policies.
+3. Create a Supabase project
 
-5. **Enable Email authentication.** In the Supabase dashboard, open **Authentication → Sign In / Providers** (the dashboard may label this **Auth Providers**) and enable **Email**. Decide whether to require email confirmation; if enabled, new accounts must confirm their email before they can sign in.
+Go to the Supabase dashboard and create a new project. Wait for it to finish provisioning before continuing.
 
-6. **Create the local environment file.** `.env.example` is present in the repository. Copy it to `.env` from PowerShell:
+4. Run the SQL schema
 
-   ```powershell
-   Copy-Item .env.example .env
-   ```
+There is no SQL schema file or migration folder in this repo right now.
 
-   Set the values in `.env` using your Supabase project's dashboard. The file should contain:
+TODO: create a schema file such as `supabase/schema.sql` or `supabase/migrations/` and run it in the Supabase SQL Editor before the app can work against the database.
 
-   ```dotenv
-   EXPO_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
-   EXPO_PUBLIC_SUPABASE_ANON_KEY=your-project-anon-or-publishable-key
-   ```
+The hooks in `hooks/` reference tables such as:
 
-   - `EXPO_PUBLIC_SUPABASE_URL`: the project URL shown in **Project Settings → API** (or **Data API**).
-   - `EXPO_PUBLIC_SUPABASE_ANON_KEY`: the project's client-side anon/public key shown in **Project Settings → API Keys**. Use only the public/anon key in a mobile app. **Never put a `service_role` or secret key in an `EXPO_PUBLIC_` variable.**
+- `profiles`
+- `creators`
+- `brands`
+- `campaigns`
+- `campaign_deliverables`
+- `applications`
+- `saved_creators`
+- `conversations`
+- `messages`
 
-   Expo inlines `EXPO_PUBLIC_` variables into the client app; they are not private credentials. Database access must be protected with correctly configured Row Level Security policies. Also note: `.gitignore` currently does **not** ignore `.env`; do not commit your populated local file. **TODO:** add `.env` to `.gitignore`.
+Those tables are expected by the code, but they are not created in the repository.
 
-## Run
+5. Enable Email auth in Supabase
 
-The scripts declared in `package.json` are `start`, `android`, `ios`, and `web`. Start Metro with:
+In the Supabase dashboard:
 
-```sh
+- Open Authentication
+- Go to Providers
+- Enable Email
+- Optionally enable email confirmation if your team wants that workflow
+
+6. Create `.env` from `.env.example`
+
+The repo already contains `.env.example`.
+
+On macOS/Linux:
+
+```bash
+cp .env.example .env
+```
+
+On Windows PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Then fill in the values:
+
+```dotenv
+EXPO_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+```
+
+What each variable means:
+
+- `EXPO_PUBLIC_SUPABASE_URL`: project URL from the Supabase dashboard. Find it in Project Settings → API.
+- `EXPO_PUBLIC_SUPABASE_ANON_KEY`: public/anon key from Project Settings → API Keys. This is the key that should be exposed to the mobile app.
+
+Important:
+
+- Do not use the Supabase service role key in a mobile app.
+- Do not commit `.env` to source control.
+- The repo currently does not hide `.env` in `.gitignore`; that should be fixed before using a real project.
+
+## Run the app
+
+Use the script from `package.json`:
+
+```bash
 npm start
 ```
 
-This runs `expo start`. Alternatively, the platform scripts are:
+or directly:
 
-```sh
-npm run ios
-npm run android
-npm run web
-```
-
-To start using the CLI directly, as requested:
-
-```sh
+```bash
 npx expo start
 ```
 
-- **iOS Simulator:** with Xcode and an iOS simulator installed on macOS, press `i` in the Expo terminal, or run `npm run ios`.
-- **Android emulator:** start an emulator in Android Studio, then press `a` in the Expo terminal, or run `npm run android`.
-- **Physical phone with Expo Go:** install Expo Go, connect the phone and development computer to the same network, start Expo, then scan the QR code with Expo Go (Android) or the iPhone Camera app.
-- If the phone cannot reach Metro on the local network, try tunnel mode:
+To clear Metro cache when the app is acting stale:
 
-  ```sh
-  npx expo start --tunnel
-  ```
+```bash
+npx expo start --clear
+```
 
-- If Metro is serving stale bundles or assets, clear its cache:
+Open the app in one of these ways:
 
-  ```sh
-  npx expo start --clear
-  ```
+- iOS Simulator: open Xcode, start an iPhone simulator, then press `i` in the Expo terminal.
+- Android Emulator: open Android Studio, start an emulator, then press `a` in the Expo terminal.
+- Physical phone: install Expo Go, connect the phone and computer to the same network, then scan the QR code in the Expo terminal.
 
-**Current limitation:** starting the project loads the starter screen in `App.tsx`; there are no role-selection, sign-up, onboarding, campaign, application, or messaging screens to navigate to yet. See [Main flow status](#main-flow-status).
+If the phone cannot access the local Metro server through LAN, use:
+
+```bash
+npx expo start --tunnel
+```
 
 ## Folder structure
 
-These are the folders currently present in the repository (excluding generated dependencies and Git metadata):
+This is the real folder structure in the repo today:
 
 ```text
 .
-├── .claude/                 # Claude Code project settings
-├── .vscode/                 # VS Code project metadata
-│   └── .react/              # React tooling metadata
-├── assets/                  # App icon, splash, and Android/web icon images
+├── .claude/                 # local Claude project settings
+├── .vscode/                # editor settings
+├── assets/                 # app icons and splash assets
 ├── components/
-│   ├── creator/             # Reusable creator cards, profile header, and platform stats
-│   └── shared/              # Shared buttons, inputs, badges, cards, and other UI pieces
-├── hooks/                   # Supabase/React Query auth, creator, campaign, application, and message hooks
-├── lib/                     # Supabase client, types, constants, theme, and utilities
-└── store/                   # Zustand authentication state
+│   ├── creator/            # creator cards, profile header, and platform data UI
+│   └── shared/             # shared inputs, card, button, badge, and empty-state components
+├── hooks/                  # Supabase + React Query hooks for auth, creators, campaigns, applications, and messages
+├── lib/                    # Supabase client, design tokens, constants, types, and helpers
+├── store/                  # Zustand auth state
+├── .env.example            # sample env file
+├── .gitignore              # git ignores
+├── .npmrc                  # npm config
+├── AGENTS.md               # agent instruction file
+├── App.tsx                 # current Expo starter app
+├── app.json                # Expo app config
+├── babel.config.js         # Babel config
+├── global.css              # NativeWind CSS entry
+├── index.ts                # root app entry that registers App.tsx
+├── metro.config.js         # Metro + NativeWind config
+├── package-lock.json       # lockfile
+├── package.json            # project scripts and dependencies
+├── tailwind.config.js     # Tailwind config
+├── tsconfig.json           # TypeScript config
+├── README.md               # project instructions
 ```
 
-There is **no `app/` directory**, despite Expo Router being configured in `app.json` and `package.json`. Other root files include `App.tsx` (the current starter screen), `index.ts` (currently registers `App.tsx`), `app.json`, `package.json`, and the Babel, Metro, Tailwind, and TypeScript configuration files.
+Note: there is no `app/` directory, and there is no `supabase/` folder.
 
-## Main flow status
+## Main flow to test when the app is completed
 
-The intended manual acceptance flow is:
+This is the intended end-to-end flow, based on the code and data model:
 
-1. Sign up with Email as a **Creator**.
-2. Finish creator onboarding and save a profile.
-3. Sign up with Email as a **Brand**.
-4. Create and publish a campaign.
-5. Return to the creator account, find the campaign, and apply.
-6. Open the conversation and exchange messages between the two accounts.
+1. Sign up as a Creator.
+2. Finish creator onboarding and profile setup.
+3. Sign up as a Brand.
+4. Create a campaign.
+5. As the Creator, find the brand campaign and apply.
+6. Message between the creator and brand.
 
-**This flow cannot currently be completed or tested in the app.** The repository has no screens or routes for any of these steps, and it has no SQL schema/policies to create the backend tables the data hooks expect. `hooks/useAuth.ts` contains sign-up/sign-in functions, and other hooks contain campaign, application, and message operations, but they are not wired to a user-facing app flow here.
+This flow is described by the models and hooks in the code, but it is not fully implemented in the current repo.
 
 ## Troubleshooting
 
-- **Metro or Expo shows stale files:** stop the development server and restart with `npx expo start --clear`.
-- **Environment variables are `undefined`:** check that `.env` is at the repository root, variable names exactly match `.env.example`, and values have no surrounding quotes or extra spaces. Restart Expo after changing `.env`; a reload alone may not refresh the bundle's environment.
-- **Supabase reports missing tables, permission denied, or RLS errors:** this repository has no SQL schema or policies. Create the required schema and least-privilege policies before using these hooks. Do not disable RLS or use a service-role key in the mobile app.
-- **NativeWind classes do not appear:** check that `babel.config.js` includes the NativeWind Babel plugin, `metro.config.js` wraps the Expo config with NativeWind and points to `global.css`, and the stylesheet is imported by the app entry. The current starter `App.tsx` does not import `global.css`, and there is no `app/` directory despite the Tailwind content path referring to it.
-- **Custom fonts do not load:** the Google Font packages are installed and theme tokens name Syne/DM Sans, but this repository has no screen/root font-loading setup. Add Expo font loading before relying on those custom font family names.
-- **A physical phone cannot connect:** confirm both devices are on the same Wi-Fi, allow the development server through the computer firewall, and use `npx expo start --tunnel` if LAN discovery is blocked.
-- **The app opens to a starter screen or has no marketplace navigation:** this is the current state of the repository, not a Metro cache issue. `index.ts` registers `App.tsx`, which renders the Expo starter placeholder; route screens are not present.
+### Expo / Metro
 
-## Roadmap / not implemented
+- If the app is stale or shows old code, run:
 
-- Creator and brand screens, role-based navigation, and onboarding.
-- SQL schema, Supabase migrations, and Row Level Security policies.
-- A complete, runnable campaign-to-application-to-messaging flow (the repository only has supporting hooks/types).
-- AI features; none are implemented.
-- Live Razorpay payments; there is no Razorpay package or payment implementation in the repository.
-- Social account OAuth/API connections; platform names and data types exist, but no connection integration is implemented.
-- Font-loading setup for the included Google Font packages.
-#   p r o j e c t - 6 9  
- 
+```bash
+npx expo start --clear
+```
+
+- If the QR code does not show or Metro will not start, stop the server and restart it.
+- If the app cannot connect on a physical device, try `--tunnel`.
+
+### Environment variables
+
+- If `EXPO_PUBLIC_SUPABASE_URL` or `EXPO_PUBLIC_SUPABASE_ANON_KEY` is undefined, check that `.env` exists at the repo root and the names match exactly.
+- Restart the Expo server after editing `.env`.
+
+### Supabase / RLS
+
+- If you get missing table or permission errors, the schema has not been created yet.
+- The code expects tables such as `profiles`, `creators`, `brands`, `campaigns`, `applications`, and `messages`.
+- Do not use a service role key in the mobile app; use the anon key and configure proper row-level security.
+
+### NativeWind / styling
+
+- Ensure the project uses the NativeWind Babel plugin and Metro config.
+- Check that `global.css` exists and is wired up in Metro.
+- The starter app is not using NativeWind yet, so styling issues are expected until the real app entry is created.
+
+### Fonts
+
+- The project includes Google font packages, but there is no explicit font-loading setup in the current app entry.
+- If the app does not show the expected typeface, add the font loading logic before using those custom fonts.
+
+### Network on real devices
+
+- Make sure the phone and computer are on the same network.
+- Use `npx expo start --tunnel` if LAN discovery fails.
+- Check that the firewall is not blocking Metro.
+
+## Roadmap / not built yet
+
+The following are not implemented in the repo today:
+
+- AI features
+- Live Razorpay payment flow
+- Real social API integrations
+- Full creator onboarding screens
+- Full brand onboarding screens
+- Complete campaign application flow
+- Real messaging UI and app navigation
+- SQL schema and RLS setup
+
+## TODO notes
+
+This repo is missing key pieces before it can run properly:
+
+- no `supabase/` folder
+- no SQL schema or migration file
+- no `app/` router folder
+- no complete sign-up/onboarding screens
+- no real environment security handling in `.gitignore`
+
+The README above is intentionally conservative and only documents what is actually present in the codebase.
