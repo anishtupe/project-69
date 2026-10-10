@@ -32,7 +32,8 @@
         {
           "photosPermission": "Allow Influde AI to access your photos to set your profile picture."
         }
-      ]
+      ],
+      "expo-image"
     ],
     "experiments": {
       "typedRoutes": true

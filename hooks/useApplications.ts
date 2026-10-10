@@ -1,12 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
+import { Application } from '../lib/types'
 
 const APPLICATION_SELECT = `*, campaigns(*, brands(*)), creators(*)`
 
 export function useApplications(creatorId?: string | null, campaignId?: string | null) {
-  return useQuery({
+  return useQuery<Application[]>({
     queryKey: ['applications', creatorId, campaignId],
-    queryFn: async () => {
+    queryFn: async (): Promise<Application[]> => {
       let query = supabase
         .from('applications')
         .select(APPLICATION_SELECT)
@@ -17,23 +18,23 @@ export function useApplications(creatorId?: string | null, campaignId?: string |
 
       const { data, error } = await query
       if (error) throw error
-      return data
+      return (data as unknown as Application[]) || []
     },
     enabled: !!(creatorId || campaignId),
   })
 }
 
 export function useApplication(id: string | null) {
-  return useQuery({
+  return useQuery<Application | null>({
     queryKey: ['application', id],
-    queryFn: async () => {
+    queryFn: async (): Promise<Application | null> => {
       const { data, error } = await supabase
         .from('applications')
         .select(APPLICATION_SELECT)
         .eq('id', id!)
         .single()
       if (error) throw error
-      return data
+      return (data as unknown as Application) ?? null
     },
     enabled: !!id,
   })
@@ -55,7 +56,7 @@ export function useCreateApplication() {
         .select(APPLICATION_SELECT)
         .single()
       if (error) throw error
-      return data
+      return data as unknown as Application
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['applications'] })
@@ -75,7 +76,7 @@ export function useUpdateApplicationStatus() {
         .select(APPLICATION_SELECT)
         .single()
       if (error) throw error
-      return data
+      return data as unknown as Application
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['applications'] })
@@ -85,9 +86,9 @@ export function useUpdateApplicationStatus() {
 
 // Check if a creator has already applied to a campaign
 export function useHasApplied(campaignId: string | null, creatorId: string | null) {
-  return useQuery({
+  return useQuery<{ id: string; status: string } | null>({
     queryKey: ['has-applied', campaignId, creatorId],
-    queryFn: async () => {
+    queryFn: async (): Promise<{ id: string; status: string } | null> => {
       const { data, error } = await supabase
         .from('applications')
         .select('id, status')
@@ -95,7 +96,7 @@ export function useHasApplied(campaignId: string | null, creatorId: string | nul
         .eq('creator_id', creatorId!)
         .maybeSingle()
       if (error) throw error
-      return data
+      return data as { id: string; status: string } | null
     },
     enabled: !!campaignId && !!creatorId,
   })

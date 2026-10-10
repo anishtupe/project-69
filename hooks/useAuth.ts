@@ -50,13 +50,16 @@ export function useAuth() {
   }
 
   const signUp = async (email: string, password: string, role: 'creator' | 'brand') => {
-    const { data, error } = await supabase.auth.signUp({ email, password })
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { role },
+      },
+    })
     if (error) throw error
     if (data.user) {
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({ id: data.user.id, email, role })
-      if (profileError) throw profileError
+      await loadProfile(data.user.id)
     }
     return data
   }

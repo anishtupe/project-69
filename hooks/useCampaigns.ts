@@ -1,13 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
-import { CampaignFilters } from '../lib/types'
+import { Campaign, CampaignFilters, Brand } from '../lib/types'
 
 const CAMPAIGN_SELECT = `*, brands(*), campaign_deliverables(*)`
 
 export function useCampaigns(filters?: CampaignFilters) {
-  return useQuery({
+  return useQuery<Campaign[]>({
     queryKey: ['campaigns', filters],
-    queryFn: async () => {
+    queryFn: async (): Promise<Campaign[]> => {
       let query = supabase
         .from('campaigns')
         .select(CAMPAIGN_SELECT)
@@ -31,15 +31,15 @@ export function useCampaigns(filters?: CampaignFilters) {
 
       const { data, error } = await query
       if (error) throw error
-      return data
+      return (data as unknown as Campaign[]) || []
     },
   })
 }
 
 export function useBrandCampaigns(brandId: string | null, status?: string) {
-  return useQuery({
+  return useQuery<Campaign[]>({
     queryKey: ['campaigns', 'brand', brandId, status],
-    queryFn: async () => {
+    queryFn: async (): Promise<Campaign[]> => {
       let query = supabase
         .from('campaigns')
         .select(CAMPAIGN_SELECT)
@@ -52,23 +52,23 @@ export function useBrandCampaigns(brandId: string | null, status?: string) {
 
       const { data, error } = await query
       if (error) throw error
-      return data
+      return (data as unknown as Campaign[]) || []
     },
     enabled: !!brandId,
   })
 }
 
 export function useCampaign(id: string | null) {
-  return useQuery({
+  return useQuery<Campaign | null>({
     queryKey: ['campaign', id],
-    queryFn: async () => {
+    queryFn: async (): Promise<Campaign | null> => {
       const { data, error } = await supabase
         .from('campaigns')
         .select(CAMPAIGN_SELECT)
         .eq('id', id!)
         .single()
       if (error) throw error
-      return data
+      return (data as unknown as Campaign) ?? null
     },
     enabled: !!id,
   })
@@ -94,7 +94,7 @@ export function useCreateCampaign() {
       if (deliverables.length > 0) {
         const { error: delivError } = await supabase.from('campaign_deliverables').insert(
           deliverables.map((d) => ({
-            campaign_id: newCampaign.id,
+            campaign_id: (newCampaign as any).id,
             type: d.type,
             quantity: d.quantity,
             notes: d.notes ?? null,
@@ -103,7 +103,7 @@ export function useCreateCampaign() {
         if (delivError) throw delivError
       }
 
-      return newCampaign
+      return newCampaign as unknown as Campaign
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['campaigns'] })
@@ -122,7 +122,7 @@ export function useUpdateCampaign() {
         .select(CAMPAIGN_SELECT)
         .single()
       if (error) throw error
-      return data
+      return data as unknown as Campaign
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['campaign', data.id] })
@@ -145,16 +145,16 @@ export function useDeleteCampaign() {
 }
 
 export function useBrandByUserId(userId: string | null) {
-  return useQuery({
+  return useQuery<Brand | null>({
     queryKey: ['brand', 'user', userId],
-    queryFn: async () => {
+    queryFn: async (): Promise<Brand | null> => {
       const { data, error } = await supabase
         .from('brands')
         .select('*')
         .eq('user_id', userId!)
         .single()
       if (error && error.code !== 'PGRST116') throw error
-      return data ?? null
+      return (data as unknown as Brand) ?? null
     },
     enabled: !!userId,
   })

@@ -1,11 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { Conversation, Message } from '../lib/types'
 
 export function useConversations(brandId?: string | null, creatorId?: string | null) {
-  return useQuery({
+  return useQuery<Conversation[]>({
     queryKey: ['conversations', brandId, creatorId],
-    queryFn: async () => {
+    queryFn: async (): Promise<Conversation[]> => {
       let query = supabase
         .from('conversations')
         .select(`*, brands(*), creators(*)`)
@@ -16,7 +17,7 @@ export function useConversations(brandId?: string | null, creatorId?: string | n
 
       const { data, error } = await query
       if (error) throw error
-      return data
+      return (data as unknown as Conversation[]) || []
     },
     enabled: !!(brandId || creatorId),
   })
@@ -33,7 +34,7 @@ export function useMessages(conversationId: string | null) {
       .on(
         'postgres_changes',
         {
-          event: 'INSERT',
+          event: '*',
           schema: 'public',
           table: 'messages',
           filter: `conversation_id=eq.${conversationId}`,
@@ -46,20 +47,20 @@ export function useMessages(conversationId: string | null) {
       .subscribe()
 
     return () => {
-      supabase.removeChannel(channel)
+      void supabase.removeChannel(channel)
     }
-  }, [conversationId])
+  }, [conversationId, queryClient])
 
-  return useQuery({
+  return useQuery<Message[]>({
     queryKey: ['messages', conversationId],
-    queryFn: async () => {
+    queryFn: async (): Promise<Message[]> => {
       const { data, error } = await supabase
         .from('messages')
         .select('*')
         .eq('conversation_id', conversationId!)
         .order('sent_at', { ascending: true })
       if (error) throw error
-      return data
+      return (data as unknown as Message[]) || []
     },
     enabled: !!conversationId,
   })
@@ -80,7 +81,7 @@ export function useSendMessage() {
         .select()
         .single()
       if (error) throw error
-      return data
+      return data as unknown as Message
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
@@ -115,7 +116,7 @@ export function useCreateConversation() {
       }
 
       const { data: existing } = await query.maybeSingle()
-      if (existing) return existing
+      if (existing) return existing as unknown as Conversation
 
       // Create new
       const { data, error } = await supabase
@@ -129,7 +130,7 @@ export function useCreateConversation() {
         .single()
 
       if (error) throw error
-      return data
+      return data as unknown as Conversation
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['conversations'] })

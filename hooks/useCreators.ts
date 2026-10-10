@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
-import { CreatorFilters } from '../lib/types'
+import { Creator, CreatorFilters, SavedCreator } from '../lib/types'
 
 const CREATOR_SELECT = `
   *,
@@ -11,9 +11,9 @@ const CREATOR_SELECT = `
 `
 
 export function useCreators(filters?: CreatorFilters) {
-  return useQuery({
+  return useQuery<Creator[]>({
     queryKey: ['creators', filters],
-    queryFn: async () => {
+    queryFn: async (): Promise<Creator[]> => {
       let query = supabase.from('creators').select(CREATOR_SELECT)
 
       if (filters?.niches?.length) {
@@ -39,38 +39,38 @@ export function useCreators(filters?: CreatorFilters) {
 
       const { data, error } = await query.order('total_followers', { ascending: false })
       if (error) throw error
-      return data
+      return (data as unknown as Creator[]) || []
     },
   })
 }
 
 export function useCreator(handle: string) {
-  return useQuery({
+  return useQuery<Creator | null>({
     queryKey: ['creator', handle],
-    queryFn: async () => {
+    queryFn: async (): Promise<Creator | null> => {
       const { data, error } = await supabase
         .from('creators')
         .select(CREATOR_SELECT)
         .eq('handle', handle)
         .single()
       if (error) throw error
-      return data
+      return (data as unknown as Creator) ?? null
     },
     enabled: !!handle,
   })
 }
 
 export function useCreatorByUserId(userId: string | null) {
-  return useQuery({
+  return useQuery<Creator | null>({
     queryKey: ['creator', 'user', userId],
-    queryFn: async () => {
+    queryFn: async (): Promise<Creator | null> => {
       const { data, error } = await supabase
         .from('creators')
         .select(CREATOR_SELECT)
         .eq('user_id', userId!)
         .single()
       if (error && error.code !== 'PGRST116') throw error
-      return data ?? null
+      return (data as unknown as Creator) ?? null
     },
     enabled: !!userId,
   })
@@ -87,9 +87,9 @@ export function useUpdateCreator() {
         .select(CREATOR_SELECT)
         .single()
       if (error) throw error
-      return data
+      return data as unknown as Creator
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['creator'] })
       queryClient.invalidateQueries({ queryKey: ['creators'] })
     },
@@ -132,16 +132,16 @@ export function useUnsaveCreator() {
 }
 
 export function useSavedCreators(brandId: string | null) {
-  return useQuery({
+  return useQuery<SavedCreator[]>({
     queryKey: ['saved-creators', brandId],
-    queryFn: async () => {
+    queryFn: async (): Promise<SavedCreator[]> => {
       const { data, error } = await supabase
         .from('saved_creators')
         .select(`*, creators(${CREATOR_SELECT})`)
         .eq('brand_id', brandId!)
         .order('created_at', { ascending: false })
       if (error) throw error
-      return data
+      return (data as unknown as SavedCreator[]) || []
     },
     enabled: !!brandId,
   })

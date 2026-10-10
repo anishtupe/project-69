@@ -282,3 +282,73 @@ This repo is missing key pieces before it can run properly:
 - no real environment security handling in `.gitignore`
 
 The README above is intentionally conservative and only documents what is actually present in the codebase.
+
+## Getting Started
+
+Follow these steps to set up and run Influde AI locally.
+
+### 1. Configure Environment Variables
+
+Copy the example environment file:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Open the `.env` file and add your Supabase project credentials. You can find them in your [Supabase Dashboard](https://supabase.com/dashboard) under **Project Settings → API**.
+
+```env
+EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+```
+
+Replace the placeholder values with your actual Supabase project URL and anon key.
+
+### 2. Set Up the Database
+
+1. Open your [Supabase Dashboard](https://supabase.com/dashboard).
+2. Navigate to **SQL Editor**.
+3. Open the `20261011000000_initial_schema.sql` file in the project.
+4. Copy its contents and paste them into the SQL Editor.
+5. Click **Run** to execute the migration.
+
+This migration creates the required database tables, triggers, and Row Level Security (RLS) policies.
+
+### 3. Install Dependencies and Start the App
+
+Open PowerShell or a terminal and navigate to the project directory:
+
+```powershell
+cd C:\Users\tupea\OneDrive\Desktop\project69\influde-ai
+```
+
+Install the required dependencies:
+
+```bash
+npm install
+```
+
+Start the Expo development server:
+
+```bash
+npx expo start
+```
+
+### 4. Run the App
+
+Once the Metro bundler starts, use one of the following options:
+
+- **Physical device (Android/iOS):** Install Expo Go, then scan the QR code displayed in your terminal.
+- **Android emulator:** Press `a` in the terminal to launch the app.
+- **iOS simulator:** Press `i` to launch the simulator (requires macOS).
+
+Make sure your physical device and computer are connected to the same Wi-Fi network when using Expo Go.
+
+### Troubleshooting
+
+- **Supabase connection errors:** Verify the project URL and anon key in `.env`.
+- **Database errors:** Ensure the SQL migration ran successfully in the Supabase SQL Editor.
+- **Dependency issues:** Run `npm install` again and restart Expo.
+- **QR code connection issues:** Ensure both devices are on the same network. If needed, start Expo using `npx expo start --tunnel`.
+
+**Note:** Never commit your `.env` file or expose secret keys in your repository. Ensure `.env` is listed in `.gitignore`.

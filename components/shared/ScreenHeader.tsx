@@ -3,7 +3,8 @@ import { View, Text, TouchableOpacity, StyleSheet, ViewStyle } from 'react-nativ
 import { router } from 'expo-router'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { Colors, Typography, Spacing, HEADER_HEIGHT } from '../../lib/theme'
+import { Colors, Typography, Spacing } from '../../lib/theme'
+import { HEADER_HEIGHT } from '../../lib/constants'
 
 // Re-export HEADER_HEIGHT from theme if not there
 const HEADER_H = 56
